@@ -12,7 +12,7 @@ If (-not $isAdmin) {
     exit
 }
 
-function WriteSuccess($message){
+function WriteSuccess($message) {
     Write-Host $message -ForegroundColor Green
 }
 
