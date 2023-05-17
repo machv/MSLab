@@ -11,11 +11,15 @@ param(
     [string]$ClientId
 )
 
+$toolsDir = ".\Tools\"
 $baseDir = ".\Scripts\"
 $outputDir = ".\Output"
 $outputFile = "Release.zip"
+$toolsOutputDir = ".\Output-Tools"
+
 [array]$ignoredFiles = "0_Shared.ps1"
 [array]$ignoredFilesToSign = @() #"LabConfig.ps1"
+[array]$toolsIgnoredFilesToSign = @()
 
 if(Test-Path -Path $outputDir) {
     Remove-Item -Path $outputDir -Recurse -Force
@@ -88,6 +92,11 @@ if($SignScripts) {
     Get-ChildItem -Path $releaseDirectory -File | Where-Object Name -In $ignoredFilesToSign | Copy-Item -Destination $signedReleaseDirectory.FullName
 
     $outputFullPath = $signedReleaseDirectory.FullName
+
+    # Sign scripts in Tools folder
+    $toolsSignedDirectory = New-Item -ItemType "Directory" -Path ".\" -Name $toolsOutputDir
+    $files = Get-ChildItem -Path $toolsDir -File | Where-Object Name -NotIn $toolsIgnoredFilesToSign 
+    Invoke-CodeSign -Files $files -OutputPath $toolsSignedDirectory -ClientId $ClientId
 }
 
 Compress-Archive -Path "$($outputFullPath)\*" -DestinationPath $outputFile -CompressionLevel Optimal -Force
