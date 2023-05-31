@@ -21,7 +21,7 @@ jobs:
       previous_tag: ${{ steps.bump.outputs.previous_tag }}
       new_tag: ${{ steps.bump.outputs.new_tag }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - id: bump
         name: Bump version
         run: |
@@ -54,7 +54,7 @@ jobs:
     runs-on: self-hosted
     needs: new-version
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - uses: azure/login@v1
