@@ -22,7 +22,7 @@ $outputFile = "Release.zip"
 
 [array]$ignoredFiles = "0_Shared.ps1"
 [array]$ignoredFilesToSign = @() #"LabConfig.ps1"
-[array]$toolsIgnoredFilesToSign = @()
+[array]$toolsIgnoredFilesToSign = @("1_SQL_Install.ps1", "2_ADK_Install.ps1", "3_SCVMM_Install.ps1")
 
 #region Build (and optionally sign) Scripts
 if(Test-Path -Path $outputDir) {
