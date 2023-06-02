@@ -8,17 +8,16 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = 'BuildAndSign')]
     [string]$SignScriptUri,
     [Parameter(Mandatory = $true, ParameterSetName = 'BuildAndSign')]
-    [string]$ClientId,
-    [Parameter(Mandatory = $false, ParameterSetName = 'BuildOnly')]
-    [Parameter(Mandatory = $true, ParameterSetName = 'BuildAndSign')]
-    [string]$ToolsOutputDir = ".\Output-Tools"
+    [string]$ClientId
 )
 
 $toolsDir = ".\Tools\"
 $baseDir = ".\Scripts\"
-$outputDir = ".\Output"
+$outputBaseDir = ".\Output\"
+$outputDir = "$($outputBaseDir)\Compiled"
+$signedOutputDir = "$($outputBaseDir)\Signed"
+$toolsOutputDir = "$($outputBaseDir)\Tools"
 $outputFile = "Release.zip"
-#$toolsOutputDir = ".\Output-Tools"
 
 [array]$ignoredFiles = "0_Shared.ps1"
 [array]$ignoredFilesToSign = @() #"LabConfig.ps1"
@@ -77,7 +76,6 @@ if($SignScripts) {
     . .\sign.ps1
 }
 
-$signedOutputDir = "$($outputDir)\Signed"
 if(Test-Path -Path $signedOutputDir) {
     Remove-Item -Path $signedOutputDir -Recurse -Force
 }
@@ -90,7 +88,7 @@ if($SignScripts) {
     Invoke-CodeSign -Files $files -OutputPath $signedReleaseDirectory -ClientId $ClientId
 } else {
     # if not signing, just copy files over as is
-    Copy-Item -Path $files -Destination $signedReleaseDirectory
+    $files | Select-Object -ExpandProperty FullName | Copy-Item -Destination $signedReleaseDirectory
 }
 
 $signedFiles = Get-ChildItem -Path $signedReleaseDirectory.FullName
@@ -116,7 +114,7 @@ if($SignScripts) {
     Invoke-CodeSign -Files $toolsFiles -OutputPath $toolsSignedDirectory -ClientId $ClientId
 } else {
     # or just copy tools scripts over
-    Copy-Item -Path $toolsFiles -Destination $toolsSignedDirectory
+    $toolsFiles | Select-Object -ExpandProperty FullName | Copy-Item -Destination $toolsSignedDirectory
 }
 
 $signedToolsFiles = Get-ChildItem -Path $toolsSignedDirectory.FullName
