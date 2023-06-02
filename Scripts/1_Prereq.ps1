@@ -89,14 +89,23 @@ function  Get-WindowsBuildNumber {
         If (Test-Path -Path $Path){
             WriteSuccess "`t $Filename is present, skipping download"
         }else{
-            $FileContent=$null
-            $FileContent = (Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/Microsoft/MSLab/master/Tools/$Filename.ps1").Content
-            if ($FileContent){
+            $FileContent = $null
+
+            try {
+                # try to download release version first
+                $FileContent = (Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/machv/MSLab/releases/download/$mslabVersion/$Filename.ps1").Content
+            } catch {
+                WriteInfo "Download $filename failed with $($_.Exception.Message), trying main branch now"
+                # if that fails, try main branch
+                $FileContent = (Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/machv/MSLab/main/Tools/$FileName.ps1").Content
+            }
+
+            if ($FileContent) {
                 $script = New-Item $Path -type File -Force
                 $FileContent=$FileContent -replace "PasswordGoesHere",$LabConfig.AdminPassword #only applies to 1_SQL_Install and 3_SCVMM_Install.ps1
                 $FileContent=$FileContent -replace "DomainNameGoesHere",$LabConfig.DomainNetbiosName #only applies to 1_SQL_Install and 3_SCVMM_Install.ps1
                 Set-Content -path $script -value $FileContent
-            }else{
+            } else {
                 WriteErrorAndExit "Unable to download $Filename."
             }
         }
@@ -113,7 +122,16 @@ function  Get-WindowsBuildNumber {
             WriteSuccess "`t $Filename is present, skipping download"
         } else {
             $FileContent = $null
-            $FileContent = (Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/Microsoft/MSLab/master/Tools/$FileName.ps1").Content
+
+            try {
+                # try to download release version first
+                $FileContent = (Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/machv/MSLab/releases/download/$mslabVersion/$Filename.ps1").Content
+            } catch {
+                WriteInfo "Download $filename failed with $($_.Exception.Message), trying main branch now"
+                # if that fails, try main branch
+                $FileContent = (Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/machv/MSLab/main/Tools/$FileName.ps1").Content
+            }
+
             if ($FileContent) {
                 $script = New-Item "$PSScriptRoot\ParentDisks\$FileName.ps1" -type File -Force
                 Set-Content -path $script -value $FileContent
@@ -125,14 +143,20 @@ function  Get-WindowsBuildNumber {
 
 # Download convert-windowsimage into Temp
 WriteInfoHighlighted "Testing Convert-windowsimage presence"
-If ( Test-Path -Path "$PSScriptRoot\Temp\Convert-WindowsImage.ps1" ) {
+$convertWindowsImagePath = "$PSScriptRoot\Temp\Convert-WindowsImage.ps1"
+If ( Test-Path -Path $convertWindowsImagePath ) {
     WriteSuccess "`t Convert-windowsimage.ps1 is present, skipping download"
-}else{ 
+} else {
     WriteInfo "`t Downloading Convert-WindowsImage"
     try {
-        Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/microsoft/MSLab/master/Tools/Convert-WindowsImage.ps1" -OutFile "$PSScriptRoot\Temp\Convert-WindowsImage.ps1"
+        Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/machv/MSLab/releases/download/$mslabVersion/Convert-WindowsImage.ps1" -OutFile $convertWindowsImagePath
     } catch {
-        WriteError "`t Failed to download Convert-WindowsImage.ps1!"
+        try {
+            WriteInfo "Download Convert-windowsimage.ps1 failed with $($_.Exception.Message), trying main branch now"
+            Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/machv/MSLab/main/Tools/Convert-WindowsImage.ps1" -OutFile $convertWindowsImagePath
+        } catch {
+            WriteError "`t Failed to download Convert-WindowsImage.ps1!"
+        }
     }
 }
 #endregion
