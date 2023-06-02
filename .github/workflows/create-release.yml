@@ -40,12 +40,17 @@ jobs:
           "New version: $newTag"
           echo "previous_tag=$currentTag" >> $env:GITHUB_OUTPUT
           echo "new_tag=$newTag" >> $env:GITHUB_OUTPUT
-      
+
       - name: Push version tag
-        uses: ad-m/github-push-action@master
+        uses: actions-ecosystem/action-push-tag@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tags: true
+          tag: ${{ steps.bump.outputs.new_tag }}
+
+#      - name: Push version tag
+#        uses: ad-m/github-push-action@master
+#        with:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#          tags: true
 
   new-release:
     name: Create release
