@@ -8,19 +8,23 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = 'BuildAndSign')]
     [string]$SignScriptUri,
     [Parameter(Mandatory = $true, ParameterSetName = 'BuildAndSign')]
-    [string]$ClientId
+    [string]$ClientId,
+    [Parameter(Mandatory = $false, ParameterSetName = 'BuildOnly')]
+    [Parameter(Mandatory = $true, ParameterSetName = 'BuildAndSign')]
+    [string]$ToolsOutputDir = ".\Output-Tools"
 )
 
 $toolsDir = ".\Tools\"
 $baseDir = ".\Scripts\"
 $outputDir = ".\Output"
 $outputFile = "Release.zip"
-$toolsOutputDir = ".\Output-Tools"
+#$toolsOutputDir = ".\Output-Tools"
 
 [array]$ignoredFiles = "0_Shared.ps1"
 [array]$ignoredFilesToSign = @() #"LabConfig.ps1"
 [array]$toolsIgnoredFilesToSign = @()
 
+#region Build (and optionally sign) Scripts
 if(Test-Path -Path $outputDir) {
     Remove-Item -Path $outputDir -Recurse -Force
 }
@@ -71,32 +75,54 @@ if($SignScripts) {
     Invoke-WebRequest -Uri $SignScriptUri -OutFile .\sign.ps1
 
     . .\sign.ps1
+}
 
-    $signedOutputDir = "$($outputDir)\Signed"
-    if(Test-Path -Path $signedOutputDir) {
-        Remove-Item -Path $signedOutputDir -Recurse -Force
-    }
+$signedOutputDir = "$($outputDir)\Signed"
+if(Test-Path -Path $signedOutputDir) {
+    Remove-Item -Path $signedOutputDir -Recurse -Force
+}
 
-    $signedReleaseDirectory = New-Item -ItemType "Directory" -Path ".\" -Name $signedOutputDir
-    $files = Get-ChildItem -Path $releaseDirectory -File | Where-Object Name -NotIn $ignoredFilesToSign 
+$signedReleaseDirectory = New-Item -ItemType "Directory" -Path ".\" -Name $signedOutputDir
+$files = Get-ChildItem -Path $releaseDirectory -File | Where-Object Name -NotIn $ignoredFilesToSign 
 
+if($SignScripts) {
     # sign scripts
     Invoke-CodeSign -Files $files -OutputPath $signedReleaseDirectory -ClientId $ClientId
-
-    $signedFiles = Get-ChildItem -Path $signedReleaseDirectory.FullName
-    if($files.Length -ne $signedFiles.Length) {
-        throw "Signing files failed (source count: $($files.Length), signedCount: $($signedFiles.Length))"
-    }
-
-    # and copy scripts that are ignored from signing
-    Get-ChildItem -Path $releaseDirectory -File | Where-Object Name -In $ignoredFilesToSign | Copy-Item -Destination $signedReleaseDirectory.FullName
-
-    $outputFullPath = $signedReleaseDirectory.FullName
-
-    # Sign scripts in Tools folder
-    $toolsSignedDirectory = New-Item -ItemType "Directory" -Path ".\" -Name $toolsOutputDir
-    $files = Get-ChildItem -Path $toolsDir -File | Where-Object Name -NotIn $toolsIgnoredFilesToSign 
-    Invoke-CodeSign -Files $files -OutputPath $toolsSignedDirectory -ClientId $ClientId
+} else {
+    # if not signing, just copy files over as is
+    Copy-Item -Path $files -Destination $signedReleaseDirectory
 }
+
+$signedFiles = Get-ChildItem -Path $signedReleaseDirectory.FullName
+if($files.Length -ne $signedFiles.Length) {
+    throw "Signing files failed (source count: $($files.Length), signedCount: $($signedFiles.Length))"
+}
+#endregion
+
+#region Build (and optionally sign) Tools
+if(Test-Path -Path $ToolsOutputDir) {
+    Remove-Item -Path $ToolsOutputDir -Recurse -Force
+}
+# and copy scripts that are ignored from signing
+Get-ChildItem -Path $releaseDirectory -File | Where-Object Name -In $ignoredFilesToSign | Copy-Item -Destination $signedReleaseDirectory.FullName
+
+$outputFullPath = $signedReleaseDirectory.FullName
+
+$toolsSignedDirectory = New-Item -ItemType "Directory" -Path ".\" -Name $toolsOutputDir
+$toolsFiles = Get-ChildItem -Path $toolsDir -File | Where-Object Name -NotIn $toolsIgnoredFilesToSign
+
+if($SignScripts) {
+    # Sign scripts in Tools folder
+    Invoke-CodeSign -Files $toolsFiles -OutputPath $toolsSignedDirectory -ClientId $ClientId
+} else {
+    # or just copy tools scripts over
+    Copy-Item -Path $toolsFiles -Destination $toolsSignedDirectory
+}
+
+$signedToolsFiles = Get-ChildItem -Path $toolsSignedDirectory.FullName
+if($toolsFiles.Length -ne $signedToolsFiles.Length) {
+    throw "Signing files failed (source count: $($toolsFiles.Length), signedCount: $($signedToolsFiles.Length))"
+}
+#endregion
 
 Compress-Archive -Path "$($outputFullPath)\*" -DestinationPath $outputFile -CompressionLevel Optimal -Force
