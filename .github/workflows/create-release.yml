@@ -38,8 +38,8 @@ jobs:
           $newTag = "v" + ($newVersion -join ".")
           git tag $newTag
           "New version: $newTag"
-          echo "::set-output name=previous_tag::$currentTag"
-          echo "::set-output name=new_tag::$newTag"
+          echo "previous_tag=$currentTag" >> $env:GITHUB_OUTPUT
+          echo "new_tag=$newTag" >> $env:GITHUB_OUTPUT
       
       - name: Push version tag
         uses: ad-m/github-push-action@master
@@ -82,7 +82,7 @@ jobs:
           } else {
             $changelog = ""
           }
-          echo "::set-output name=changelog::$changelog"
+          echo "changelog=$changelog" >> $env:GITHUB_OUTPUT
         
       - name: Create new release
         uses: softprops/action-gh-release@v1
