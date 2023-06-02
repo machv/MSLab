@@ -9,7 +9,7 @@ on:
     paths: 
       - 'Scripts/**'
       - 'Tools/**'
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   new-version:
