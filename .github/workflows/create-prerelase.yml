@@ -8,6 +8,7 @@ on:
   push:
     paths: 
       - 'Scripts/**'
+      - 'Tools/**'
     branches: [ dev ]
 
 jobs:
@@ -16,7 +17,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[no release]')"
     runs-on: windows-2019
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Build scripts 
@@ -26,7 +27,7 @@ jobs:
           ./build.ps1 -Version prerelease
           $filename = "mslab_dev-$((Get-Date -Format "yyyyMMdd")).zip"
           mv ./Release.zip $filename
-          echo "::set-output name=filename::$filename"
+          echo "filename=$filename" >> $env:GITHUB_OUTPUT
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
