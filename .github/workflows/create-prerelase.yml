@@ -28,9 +28,12 @@ jobs:
           $filename = "mslab_dev-$((Get-Date -Format "yyyyMMdd")).zip"
           mv ./Release.zip $filename
           echo "filename=$filename" >> $env:GITHUB_OUTPUT
-      - name: Create new release
+      - name: Delete current dev prerelease
+        uses: cb80/delrel@latest
+        with:
+          tag: dev
+      - name: Create new dev prerelease
         uses: softprops/action-gh-release@v1
-#        if: startsWith(github.ref, 'refs/tags/')
         with:
           tag_name: dev
           name: dev branch preview
