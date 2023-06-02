@@ -28,11 +28,17 @@ jobs:
           $filename = "mslab_dev-$((Get-Date -Format "yyyyMMdd")).zip"
           mv ./Release.zip $filename
           echo "filename=$filename" >> $env:GITHUB_OUTPUT
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - name: Delete current dev prerelease
+        uses: cb80/delrel@latest
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "dev"
+          tag: dev
+      - name: Create new dev prerelease
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: dev
+          name: dev branch preview
+          generate_release_notes: true
           prerelease: true
-          title: "dev branch preview"
           files: |
             ${{ steps.build.outputs.filename }}
+            Output/Tools/*.ps1
