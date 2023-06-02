@@ -69,7 +69,7 @@ jobs:
         with:
           azPSVersion: "latest"
           inlineScript: |
-            ./build.ps1 -Version ${{ needs.new-version.outputs.new_tag }} -SignScripts $false -SignScriptUri $env:SIGN_SCRIPT_URI -ClientId $env:CLIENT_ID -ToolsOutputDir ".\Output-Tools"
+            ./build.ps1 -Version ${{ needs.new-version.outputs.new_tag }} -SignScripts $false -SignScriptUri $env:SIGN_SCRIPT_URI -ClientId $env:CLIENT_ID"
             Move-Item ./Release.zip mslab_${{ needs.new-version.outputs.new_tag }}.zip
       - name: Create changelog
         id: changelog
@@ -96,7 +96,7 @@ jobs:
             ${{ steps.changelog.outputs.changelog }}
           files: |
             mslab_${{ needs.new-version.outputs.new_tag }}.zip
-            Output-Tools/*.ps1
+            Output/Tools/*.ps1
 
 #      - name: Create Github Release
 #        id: create_release
