@@ -97,9 +97,11 @@ jobs:
           name: Release ${{ needs.new-version.outputs.new_tag }} # ${{ github.ref }}
           generate_release_notes: true
           body: |
-            ℹ️ You should download only **mslab_${{ needs.new-version.outputs.new_tag }}.zip** file. Remaining `.ps1` files in this release would be downloaded on-demand by MSLab itself, only if needed.
+            :package: All MSLab scripts are in **mslab_${{ needs.new-version.outputs.new_tag }}.zip** file. 
             
-            📃 Changes in this version:
+            :information_source: Remaining `.ps1` files in this release would be downloaded on-demand by MSLab scripts during deployment, only if needed.
+            
+            :basket: Changes in this version:
             ${{ steps.changelog.outputs.changelog }}
           files: |
             mslab_${{ needs.new-version.outputs.new_tag }}.zip
