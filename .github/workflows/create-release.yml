@@ -97,7 +97,9 @@ jobs:
           name: Release ${{ needs.new-version.outputs.new_tag }} # ${{ github.ref }}
           generate_release_notes: true
           body: |
-            Changes in this version:
+            ℹ️ You should download only **mslab_${{ needs.new-version.outputs.new_tag }}.zip** file. Remaining `.ps1` files in this release would be downloaded on-demand by MSLab itself, only if needed.
+            
+            📃 Changes in this version:
             ${{ steps.changelog.outputs.changelog }}
           files: |
             mslab_${{ needs.new-version.outputs.new_tag }}.zip
