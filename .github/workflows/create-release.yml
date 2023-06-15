@@ -62,20 +62,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
-      - name: Build scripts
-        uses: azure/powershell@v1
-        env:
-          SIGN_SCRIPT_URI: ${{ secrets.SIGN_SCRIPT_URI }}
-          CLIENT_ID: ${{ secrets.CLIENT_ID }} # just to ofusctate it in the output
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            ./build.ps1 -Version ${{ needs.new-version.outputs.new_tag }} -SignScripts $true -SignScriptUri $env:SIGN_SCRIPT_URI -ClientId $env:CLIENT_ID
-            Move-Item ./Release.zip mslab_${{ needs.new-version.outputs.new_tag }}.zip
       - name: Create changelog
         id: changelog
         shell: powershell
@@ -96,11 +82,23 @@ jobs:
           :basket: Changes in this version:
           $changelog
           "@
-          
           Set-Content -Value $changeLogContent -Path .\changelog.md
           
-          echo "changelog=$changelog" >> $env:GITHUB_OUTPUT
-        
+          #echo "changelog=$changelog" >> $env:GITHUB_OUTPUT
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+      - name: Build scripts
+        uses: azure/powershell@v1
+        env:
+          SIGN_SCRIPT_URI: ${{ secrets.SIGN_SCRIPT_URI }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }} # just to ofusctate it in the output
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            ./build.ps1 -Version ${{ needs.new-version.outputs.new_tag }} -SignScripts $true -SignScriptUri $env:SIGN_SCRIPT_URI -ClientId $env:CLIENT_ID
+            Move-Item ./Release.zip mslab_${{ needs.new-version.outputs.new_tag }}.zip
       - name: Create new release
         uses: softprops/action-gh-release@v1
 #        if: startsWith(github.ref, 'refs/tags/')
