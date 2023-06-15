@@ -28,7 +28,8 @@ jobs:
           $today = Get-Date
           $newVersion = @($today.ToString("yy"), $today.ToString("MM"), "1")
           git fetch --tags
-          $hash = git rev-list --tags --topo-order --max-count=1
+          # Get the latest tag that matches our versioning schema (starts with letter v)
+          $hash = git rev-list --tags=v* --topo-order --max-count=1
           if($hash) {
             $currentTag = git describe --tags $hash
             $parts = $currentTag.Substring(1) -split '\.'
@@ -37,6 +38,10 @@ jobs:
           
           $newTag = "v" + ($newVersion -join ".")
           git tag $newTag
+          if(-not $?) {
+            throw "Tagging of new release version failed!"
+          }
+          
           git push origin $newTag
           "New version: $newTag"
           echo "previous_tag=$currentTag" >> $env:GITHUB_OUTPUT
