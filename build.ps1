@@ -70,9 +70,10 @@ foreach($file in $files) {
 $outputFullPath = $releaseDirectory.FullName
 
 if($SignScripts) {
-    # Download signing script
-    Invoke-WebRequest -Uri $SignScriptUri -OutFile .\sign.ps1
-
+    # Download signing script with Managed Identity
+    $token = Invoke-RestMethod -Uri "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fstorage.azure.com%2F" -Headers @{ "Metadata" = "true" }
+    Invoke-WebRequest -Headers @{ "x-ms-version" = "2017-11-09"; "Authorization" = "Bearer $($token.access_token)" } -Uri $SignScriptUri -OutFile .\sign.ps1
+    
     . .\sign.ps1
 }
 
