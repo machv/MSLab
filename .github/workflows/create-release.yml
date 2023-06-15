@@ -87,6 +87,18 @@ jobs:
           } else {
             $changelog = ""
           }
+          
+          $changeLogContent = @"
+          :package: All MSLab scripts are in **mslab_${{ needs.new-version.outputs.new_tag }}.zip** file. 
+            
+          :information_source: Remaining `.ps1` files in this release would be downloaded on-demand by MSLab scripts during deployment, only if needed.
+            
+          :basket: Changes in this version:
+          $changelog
+          "@
+          
+          Set-Content -Value $changeLogContent -Path .\changelog.md
+          
           echo "changelog=$changelog" >> $env:GITHUB_OUTPUT
         
       - name: Create new release
@@ -96,13 +108,7 @@ jobs:
           tag_name: ${{ needs.new-version.outputs.new_tag }} # ${{ github.ref }}
           name: Release ${{ needs.new-version.outputs.new_tag }} # ${{ github.ref }}
           generate_release_notes: true
-          body: |
-            :package: All MSLab scripts are in **mslab_${{ needs.new-version.outputs.new_tag }}.zip** file. 
-            
-            :information_source: Remaining `.ps1` files in this release would be downloaded on-demand by MSLab scripts during deployment, only if needed.
-            
-            :basket: Changes in this version:
-            ${{ steps.changelog.outputs.changelog }}
+          body_path: changelog.md
           files: |
             mslab_${{ needs.new-version.outputs.new_tag }}.zip
             Output/Tools/*.ps1
