@@ -89,23 +89,14 @@ function  Get-WindowsBuildNumber {
         If (Test-Path -Path $Path){
             WriteSuccess "`t $Filename is present, skipping download"
         }else{
-            $FileContent = $null
-
-            try {
-                # try to download release version first
-                $FileContent = (Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/machv/MSLab/releases/download/$mslabVersion/$Filename.ps1").Content
-            } catch {
-                WriteInfo "Download $filename failed with $($_.Exception.Message), trying main branch now"
-                # if that fails, try main branch
-                $FileContent = (Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/machv/MSLab/main/Tools/$FileName.ps1").Content
-            }
-
-            if ($FileContent) {
+            $FileContent=$null
+            $FileContent = (Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/Microsoft/MSLab/master/Tools/$Filename.ps1").Content
+            if ($FileContent){
                 $script = New-Item $Path -type File -Force
                 $FileContent=$FileContent -replace "PasswordGoesHere",$LabConfig.AdminPassword #only applies to 1_SQL_Install and 3_SCVMM_Install.ps1
                 $FileContent=$FileContent -replace "DomainNameGoesHere",$LabConfig.DomainNetbiosName #only applies to 1_SQL_Install and 3_SCVMM_Install.ps1
                 Set-Content -path $script -value $FileContent
-            } else {
+            }else{
                 WriteErrorAndExit "Unable to download $Filename."
             }
         }
