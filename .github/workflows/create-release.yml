@@ -77,7 +77,7 @@ jobs:
 #            ./build.ps1 -Version ${{ needs.new-version.outputs.new_tag }} -SignScripts $true -SignScriptUri $env:SIGN_SCRIPT_URI -ClientId $env:CLIENT_ID
 #            Move-Item ./Release.zip mslab_${{ needs.new-version.outputs.new_tag }}.zip
       - name: Build and sign release scripts
-        shell: powershell
+        shell: pwsh
         env:
           SIGN_SCRIPT_URI: ${{ secrets.SIGN_SCRIPT_URI }}
           CLIENT_ID: ${{ secrets.CLIENT_ID }} # just to obfusctate it in the output
