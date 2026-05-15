@@ -1,4 +1,4 @@
-#region Output logging
+#region Output logging 
 function WriteInfo($message) {
     Write-Host $message
 }
